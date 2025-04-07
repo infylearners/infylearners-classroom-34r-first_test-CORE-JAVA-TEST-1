@@ -1,0 +1,42 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: sample
+      id: sample
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: sample
+        setup-command: ''
+        command: gradle test
+        input: ''
+        expected-output: Hello
+        comparison-method: contains
+        timeout: 10
+        max-score: 5
+    - name: setup
+      id: setup
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: setup
+        setup-command: ''
+        command: gradle init
+        timeout: 10
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        SAMPLE_RESULTS: "${{steps.sample.outputs.result}}"
+        SETUP_RESULTS: "${{steps.setup.outputs.result}}"
+      with:
+        runners: sample,setup
